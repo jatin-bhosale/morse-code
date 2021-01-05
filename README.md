@@ -1,2 +1,3 @@
 # morse-code
-Encode and Decode Morse Codes using this library
+
+Encode and Decode Morse Codes using this library.
