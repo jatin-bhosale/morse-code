@@ -1,6 +1,6 @@
 //declare variables here
-
-String morse[36] = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----."};
+int words = 0;
+const String morse[36] = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----."};
 
 void setup() {
   Serial.begin(9600);
@@ -17,13 +17,114 @@ void loop() {
     delay(10);
   }
   // Serial.println(s);
-  Serial.println(morseDecode (s));
+  Serial.println(morseRead(A1));
 }
 
 // functions here
 
-String morseReceive(uint8_t digi_pin){
-  
+String morseRead(uint8_t digi_pin) {
+  int tm = 500;             // this is the duration of one unit of time ( time of one dit )
+  int t1 = 0, t2 = 0, flg = 0, a = 0, b = 0, an = 0, bn = 0;
+  int t[13], dit[12], dash[12], flag[12];
+  String op = "";
+  while (digitalRead(digi_pin) == LOW) {}
+  t[0] = millis();
+  for (int i = 0; i < 12; i += 2) {             //read first 6 inputs (may be either dits or dashes)
+    while (digitalRead(digi_pin) == HIGH) {}
+    t[i + 1] = millis() - t[i];
+    while (digitalRead(digi_pin) == LOW) {}
+    t[i + 2] = millis() - t[i + 1];
+  }
+  t1 = millis();
+  for (int m = 1; m < 13; m += 2) {             //differentiate between a dit and a dash and calculate average time for a dit and a dash
+    a = 0, b = 0, an = 0, bn = 0;
+    int A[6] = {0, 0, 0, 0, 0, 0};
+    int B[6] = {0, 0, 0, 0, 0, 0};
+    A[0] = t[m];
+    for (int i = 1, j = 1, k = 0; i < 13; i += 2) {               //check if it is a dit or a dash
+      if (t[i] > ((A[0] * 2) / 3) && t[i] < (A[0] * 2)) {
+        A[j] = t[i];
+      }
+      else {
+        B[k] = t[i];
+        k++;
+      }
+    }
+    for (int i = 0; A[i] != 0; i++) {                         //find average of array
+      a += A[i], an++;
+    }
+    for (int i = 0; B[i] != 0; i++) {
+      b += B[i], bn++;
+    }
+    a = a / an, b = b / bn;
+    if (a < b) {                                            //save average time in the dit or dash array
+      dit[m - 1] = a, dash[m - 1] = b;
+    }
+    else {
+      dit[m - 1] = b, dash[m - 1] = a;
+    }
+    if (dash[m - 1] > (2 * dit[m - 1]) && dash[m - 1] < (dit[m - 1] * 4)) {             //check if the data is valid and set flag accordingly
+      flag[m - 1] = 1;                                                             // 1 means data is correct
+    }
+    else {
+      flag[m - 1] = 0;
+    }
+  }
+  a = 0, b = 0;
+  for (int i = 0; i < 12; i++) {                              //average time of a dit and a dash
+    if (flag[i] == 1) {
+      a += dit[i], b += dash[i];
+    }
+  }
+  if (b > (2 * a) && b < (a * 4)) {
+    words = 1200 / a;
+  }
+  tm = a;
+  for (int i = 0; i < 13; i++) {
+    if (i % 2 == 0) {
+      if (t[i] > (tm * 2) && t[i] < (4 * tm)) {
+        op += " ";
+      }
+      else if (t[i] > (tm * 5) && t[i] < (8 * tm)) {
+        op += "   ";
+      }
+    }
+    else {
+      if (t[i] > (tm / 2) && t[i] < (tm * 2)) {
+        op += ".";
+      }
+      else if (t[i] > (tm * 2) && t[i] < (4 * tm)) {
+        op += "-";
+      }
+    }
+  }
+  //find tm here...
+  // while(digitalRead(digi_pin)==LOW){}
+  while (1) {
+    while (digitalRead(digi_pin) == HIGH) {}
+    t2 = millis() - t1;
+    t1 = millis();
+    if (t2 > (tm / 2) && t2 < (tm * 2)) {
+      op += ".";
+    }
+    else if (t2 > (tm * 2) && t2 < (4 * tm)) {
+      op += "-";
+    }
+    while (digitalRead(digi_pin) == LOW) {}
+    // if (digitalRead(digi_pin) == HIGH) {
+    t2 = millis() - t1;
+    t1 = millis();
+    if (t2 > (tm * 2) && t2 < (4 * tm)) {
+      op += " ";
+    }
+    else if (t2 > (tm * 5) && t2 < (8 * tm)) {
+      op += "   ";
+    }
+    else if (t2 > (tm * 10)) {
+      break;
+    }
+  }
+  return op;
 }
 
 
