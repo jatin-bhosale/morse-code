@@ -16,15 +16,52 @@ void loop() {
     s += c;
     delay(10);
   }
-  morseTransmit (13,s,8);
+  // Serial.println(s);
+  Serial.println(morseDecode (s));
 }
 
 // functions here
-String morseDecode(String str){
+
+String morseReceive(uint8_t digi_pin){
   
 }
 
 
+
+String morseDecode(String str) {
+  int flg = 0;
+  str.trim();
+  str += " ";
+  String key = "", op = "";
+  for (int i = 0; i < str.length(); i++) {
+    char c = str.charAt(i);
+    if (c == 32) {
+      flg++;
+      if (flg == 3) {
+        op += " ";
+      }
+      for (int j = 0; j < 36 ; j++) {
+        if (key == morse[j]) {
+          char ch;
+          if (j < 26) {
+            ch = 'A' + j;
+          }
+          else {
+            ch = '0' + j - 26;
+          }
+          op += ch;
+          key = "";
+          flg = 0;
+          break;
+        }
+      }
+    }
+    else {
+      key += c;
+    }
+  }
+  return op;
+}
 
 void morseTransmit(uint8_t digi_pin, String str, int wpm) {     //(Digital Pin No , Message to be transmitted , Speed of message in Words per minute(WPM))
   wpm = 1200 / wpm;     //here the new wpm is one unit of time i.e., duration of one dit.     Source : Wikipedia
@@ -58,7 +95,6 @@ void morseTransmit(uint8_t digi_pin, String str, int wpm) {     //(Digital Pin N
     }
   }
 }
-
 
 String morseEncode(String str) {
   String op = "";
