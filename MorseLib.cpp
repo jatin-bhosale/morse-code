@@ -5,6 +5,7 @@
 #include "Arduino.h"
 #include "MorseLib.h"
 
+static const String morse[36] = {"-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.."};
 
 int autoSQL(unsigned int pin)
 {
@@ -72,7 +73,6 @@ void morseTx(unsigned int pin, String ip, int t)          // t is rate in wpm
 {
   ip = morseEncode(ip);
   Serial.println(ip);
-  // transmit
   //duration of 1 unit of time = 1200/wpm
 
   t = 1200 / t;
