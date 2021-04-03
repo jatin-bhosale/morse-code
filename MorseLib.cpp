@@ -3,37 +3,32 @@
 */
 
 #include "Arduino.h"
-#include "MorseCode.h"
+#include "MorseLib.h"
 
-MorseCode::MorseCode(unsigned int pin)
+
+int autoSQL(unsigned int pin)
 {
-    _pin=pin;
-}
-
-
-int MorseCode::autoSQL()
-{
-  int t1 = millis(), op = abs(analogRead(_pin));
+  int t1 = millis(), op = abs(analogRead(pin));
   while (millis() < t1 + 1000) {
-    if (abs(analogRead(_pin)) > op) {
-      op = abs(analogRead(_pin));
+    if (abs(analogRead(pin)) > op) {
+      op = abs(analogRead(pin));
     }
   }
   return op;
 }
 
-String MorseCode::morseRx(int tim, int sql, double tol)
+String morseRx(unsigned int pin, int tim, int sql, double tol)
 {
   tim = 1200 / tim;
   String op = "";
   int t1 = millis(), t2 = millis(), t = 0;
-  while (analogRead(_pin) < sql && analogRead(_pin) > (sql * (-1))) {}
+  while (analogRead(pin) < sql && analogRead(pin) > (sql * (-1))) {}
   t1 = millis();
 point1:
-  while (!(analogRead(_pin) < sql && analogRead(_pin) > (sql * (-1)))) {}
+  while (!(analogRead(pin) < sql && analogRead(pin) > (sql * (-1)))) {}
   t2 = millis();
   delay(3);
-  if (analogRead(_pin) < sql && analogRead(_pin) > (sql * (-1))) {
+  if (analogRead(pin) < sql && analogRead(pin) > (sql * (-1))) {
     t = t2 - t1;
     if ((t > (1 - tol)*tim) && (t < (1 + tol)*tim)) {
       op += '.';
@@ -49,7 +44,7 @@ point1:
     goto point1;
   }
   while (1) {
-    if (!(analogRead(_pin) < sql && analogRead(_pin) > (sql * (-1)))) {
+    if (!(analogRead(pin) < sql && analogRead(pin) > (sql * (-1)))) {
       t1 = millis();
       t = t1 - t2;
       if ((t > (1 - tol)*tim) && (t < (1 + tol)*tim)) {}
@@ -73,7 +68,7 @@ point1:
 }
 
 
-void MorseCode::morseTx(String ip, int t)          // t is rate in wpm
+void morseTx(unsigned int pin, String ip, int t)          // t is rate in wpm
 {
   ip = morseEncode(ip);
   Serial.println(ip);
@@ -83,15 +78,15 @@ void MorseCode::morseTx(String ip, int t)          // t is rate in wpm
   t = 1200 / t;
   for (int i = 0; i < ip.length(); i++) {
     if (ip.charAt(i) == '.') {
-      analogWrite(_pin, 1023);
+      analogWrite(pin, 1023);
       delay(t);
-      analogWrite(_pin, 0);
+      analogWrite(pin, 0);
       delay(t);
     }
     else if (ip.charAt(i) == '-') {
-      analogWrite(_pin, 1023);
+      analogWrite(pin, 1023);
       delay(3 * t);
-      analogWrite(_pin, 0);
+      analogWrite(pin, 0);
       delay(t);
     }
     else if (ip.charAt(i) == ' ') {
@@ -108,7 +103,7 @@ void MorseCode::morseTx(String ip, int t)          // t is rate in wpm
 }
 
 
-String MorseCode::morseEncode(String ip)
+String morseEncode(String ip)
 {
   String op = "";
   for (int i = 0; i < ip.length(); i++) {
@@ -133,7 +128,7 @@ String MorseCode::morseEncode(String ip)
 }
 
 
-String MorseCode::morseDecode(String ip)
+String morseDecode(String ip)
 {
   String op = "", tmp = "";
   ip += " ";
