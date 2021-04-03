@@ -4,20 +4,20 @@ const String morse[36] = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....
 
 void setup() {
   Serial.begin(9600);
-  pinMode(13, OUTPUT);
+  pinMode(2, INPUT);
 }
 
 void loop() {
-  while (!Serial.available()) {}
-  String s = "";
-  while (Serial.available() > 0)
-  {
-    char c = Serial.read();
-    s += c;
-    delay(10);
-  }
-  // Serial.println(s);
-  Serial.println(morseRead(A1));
+//  while (!Serial.available()) {}
+//  String s = "";
+//  while (Serial.available() > 0)
+//  {
+//    char c = Serial.read();
+//    s += c;
+//    delay(10);
+//  }
+  Serial.println("Begin");
+  Serial.println(morseRead(2));
 }
 
 // functions here
@@ -100,7 +100,7 @@ String morseRead(uint8_t digi_pin) {
   }
   //find tm here...
   // while(digitalRead(digi_pin)==LOW){}
-  while (1) {
+  while (millis()<(tm*10)) {
     while (digitalRead(digi_pin) == HIGH) {}
     t2 = millis() - t1;
     t1 = millis();
@@ -110,7 +110,7 @@ String morseRead(uint8_t digi_pin) {
     else if (t2 > (tm * 2) && t2 < (4 * tm)) {
       op += "-";
     }
-    while (digitalRead(digi_pin) == LOW) {}
+    while (digitalRead(digi_pin) == LOW&&millis()<(tm*10)) {}
     // if (digitalRead(digi_pin) == HIGH) {
     t2 = millis() - t1;
     t1 = millis();
@@ -170,7 +170,7 @@ void morseTransmit(uint8_t digi_pin, String str, int wpm) {     //(Digital Pin N
   str = morseEncode(str);
   for (int i = 0; i < str.length(); i++) {
     char c = str.charAt(i);
-    if (c != " ") {
+    if (c != ' ') {
       if (flg == 1) {
         delay(wpm * 2);
       }
@@ -191,7 +191,7 @@ void morseTransmit(uint8_t digi_pin, String str, int wpm) {     //(Digital Pin N
       digitalWrite(digi_pin, LOW);
       delay(wpm);
     }
-    else if (c == " ") {
+    else if (c == ' ') {
       flg++;
     }
   }
