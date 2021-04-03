@@ -4,18 +4,20 @@
 
 #ifndef MorseCode_h
 #define MorseCode_h
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-#include <stdint.h>
+#include "Arduino.h"
 
-extern int autoSQL(unsigned int pin);
-extern String morseRx(unsigned int pin, int tim, int sql, double tol);
-extern void morseTx(unsigned int pin, String ip, int t);
-String morseEncode(String ip);
-String morseDecode(String ip);
-#ifdef __cplusplus
+
+class MorseCode
+{
+    public:
+        MorseCode(unsigned int pin);
+        int autoSQL();
+        String morseRx(int tim, int sql, double tol);
+        void morseTx(String ip, int t);
+    private:
+        unsigned int _pin
+        String morseEncode(String ip);
+        String morseDecode(String ip);
 }
-#endif
-#endif
+
