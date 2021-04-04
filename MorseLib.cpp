@@ -65,16 +65,12 @@ point1:
     }
   }
   return morseDecode(op);
-  //return
 }
-
 
 void morseTx(unsigned int pin, String ip, int t)          // t is rate in wpm
 {
   ip = morseEncode(ip);
-  Serial.println(ip);
   //duration of 1 unit of time = 1200/wpm
-
   t = 1200 / t;
   for (int i = 0; i < ip.length(); i++) {
     if (ip.charAt(i) == '.') {
@@ -99,12 +95,11 @@ void morseTx(unsigned int pin, String ip, int t)          // t is rate in wpm
       }
     }
   }
-
 }
-
 
 String morseEncode(String ip)
 {
+  ip.trim();
   String op = "";
   for (int i = 0; i < ip.length(); i++) {
     char c = ip.charAt(i);
@@ -127,9 +122,8 @@ String morseEncode(String ip)
   return op;
 }
 
-
-String morseDecode(String ip)
-{
+String morseDecode(String ip) {
+  ip = autoCorr(ip);
   String op = "", tmp = "";
   ip += " ";
   for (int i = 0; i < (ip.length()); i++) {
@@ -138,7 +132,15 @@ String morseDecode(String ip)
     }
     else {
       for (int j = 0; j < 36; j++) {
-        if (tmp == morse[j]) {
+        if (tmp == "(" || tmp == ")" || tmp == "/") {
+          op += tmp;
+          break;
+        }
+        else if (tmp == "&") {
+          op += '?';
+          break;
+        }
+        else if (tmp == morse[j]) {
           if (j <= 9) {
             op += j;
           }
@@ -158,3 +160,93 @@ String morseDecode(String ip)
   return (op);
 }
 
+String autoCorr(String ip)
+{
+  ip.trim();
+  String op = "", tmp = "", p1 = "", p2 = "";
+  int err = 0;
+  ip += " ";
+  for (int i = 0; i < (ip.length()); i++) {
+    if (ip.charAt(i) != ' ') {
+      tmp += ip.charAt(i);
+    }
+    else {
+      for (int j = 0; j < tmp.length(); j++) {
+        if (tmp.charAt(j) == '$') {
+          err++;
+        }
+      }
+      for (int j = 0; j < tmp.length(); j++) {
+        if (tmp.charAt(j) == '?') {
+          err++;
+        }
+      }
+      if (err == 0) {
+        op += (tmp + " ");
+      }
+      else if (err > 1) {
+        op += "& ";
+      }
+      else {
+        for (int j = 0; j < tmp.length(); j++) {
+          if (tmp.charAt(j) == '$') {
+            tmp.remove(j, 1);
+            p1 = tmp, p2 = tmp;
+            p1.remove(0, j);
+            p2.remove(j, tmp.length() - j);
+            if (verifyMorse(tmp)) {
+              if (verifyMorse(p1) && verifyMorse(p2)) {
+                op += "( " + tmp + " / " + p1 + " " + p2 + " ) ";
+              }
+              else {
+                op += (tmp + " ");
+              }
+            }
+            else {
+              if (verifyMorse(p1) && verifyMorse(p2)) {
+                op += (p2 + " " + p1 + " ");
+              }
+              else {
+                op += "& ";
+              }
+            }
+          }
+          else if (tmp.charAt(j) == '?') {
+            p1 = tmp;
+            p1.setCharAt(j, '-');
+            p2 = tmp;
+            p2.setCharAt(j, '.');
+            if (verifyMorse(p1)) {
+              if (verifyMorse(p2)) {
+                op += ("( " + p1 + " / " + p2 + " ) ");
+              }
+              else {
+                op += p1;
+              }
+            }
+            else {
+              if (verifyMorse(p2)) {
+                op += p2;
+              }
+            }
+          }
+        }
+      }
+      err = 0;
+      tmp = "";
+    }
+  }
+  return (op);
+}
+
+boolean verifyMorse(String ip)
+{
+  ip.trim();
+  for (int i = 0; i < 36; i++) {
+    if (ip == morse[i]) {
+      return true;
+    }
+
+  }
+  return false;
+}
