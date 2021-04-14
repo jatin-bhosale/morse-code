@@ -250,3 +250,78 @@ boolean verifyMorse(String ip)
   }
   return false;
 }
+
+morseStruct getWPM(unsigned int pin, int sql)
+{
+  morseStruct out = {0, ""};
+  int wpm = 0, erno = 0;
+  String op[56];
+  int errs[56], high[6], low[6], t1 = millis(), t2 = millis(), tol = 0.1;
+  for (int i = 0; i < 6; i++) {
+    while (analogRead(pin) < sql && analogRead(pin) > (sql * (-1))) {}
+    t1 = millis();
+    low[i] = t1 - t2;
+point1:
+    while (!(analogRead(pin) < sql && analogRead(pin) > (sql * (-1)))) {}
+    t2 = millis();
+    delay(3);
+    if (analogRead(pin) < sql && analogRead(pin) > (sql * (-1))) {
+      high[i] = t2 - t1;
+    }
+    else {
+      goto point1;
+    }
+  }
+  for (int i = 5; i < 61; i++) {
+    double tim = 1200 / i;
+    double tol = 0.1;
+    for (int j = 0; j < 6; j++) {
+      int t = high[j];
+      if ((t > (1 - tol)*tim) && (t < (1 + tol)*tim)) {
+        op[i] += '.';
+      }
+      else if ((t > (3 - tol)*tim) && (t < (3 + tol)*tim)) {
+        op[i] += '-';
+      }
+      else {
+        op[i] += '?';      //error detecting high
+      }
+      if (j == 5) {
+        continue;
+      }
+      t = low[j + 1];
+      if ((t > (1 - tol)*tim) && (t < (1 + tol)*tim)) {}
+      else if ((t > (3 - tol)*tim) && (t < (3 + tol)*tim)) {
+        op[i] += ' ';
+      }
+      else if ((t > (7 - tol)*tim) && (t < (7 + tol)*tim)) {
+        op[i] += "   ";
+      }
+      else {
+        op[i] += '?';      //error detecting low
+      }
+    }
+    for (int j = 0; j < op[i].length(); j++) {
+      if (op[i].charAt(j) == '?') {
+        errs[i]++;
+      }
+    }
+    if (errs[i] == 0) {
+      out.wpm = i;
+      out.output = op[i];
+      return out;
+      break;
+    }
+  }
+  wpm = 0;
+  erno = errs[0];
+  for (int i = 1; i < 56; i++) {
+    if (erno > errs[i]) {
+      wpm = i;
+      erno = errs[i];
+    }
+  }
+  out.wpm = wpm + 5;
+  out.output = op[wpm];
+  return out;
+}
