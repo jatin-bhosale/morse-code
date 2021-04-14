@@ -64,7 +64,7 @@ point1:
       break;
     }
   }
-  return autoCorr(morseDecode(op));
+  return morseDecode(op);
 }
 
 void morseTx(unsigned int pin, String ip, int t)          // t is rate in wpm
