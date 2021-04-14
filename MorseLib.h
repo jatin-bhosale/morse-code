@@ -17,9 +17,9 @@ extern int autoSQL(unsigned int pin);
 
 extern String morseRx(unsigned int pin, int tim, int sql, double tol);
 
-extern  void morseTx(unsigned int pin, String ip, int t);
+extern void morseTx(unsigned int pin, String ip, int t);
 
-extern morseStruct getWPM(Unsigned int pin, int sql);
+extern morseStruct getWPM(unsigned int pin, int sql);
 
 String morseEncode(String ip);
 
